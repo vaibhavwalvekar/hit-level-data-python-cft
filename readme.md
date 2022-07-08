@@ -2,12 +2,12 @@ This is a application which deploys AWS resources to build out a pipeline to pro
 
 How much revenue is the client getting from external Search Engines, such as Google, Yahoo and MSN, and which keywords are performing the best based on revenue?
 
-To answer the above question, the design is put in place to build a robust, scalable, decoupled and governed data pipeline with proper systems to notify/log success/ failure/ retires, etc. The design is also simplified keeping in mind the project timelines and resources. The design workflow doc can be found at -
+To answer the above question, the design is put in place to build a robust, scalable, decoupled and governed data pipeline with proper systems to notify/log success/ failure/ retires, etc. The design is also simplified keeping in mind the project timelines and resources. The design workflow doc can be found at  https://raw.githubusercontent.com/vaibhavwalvekar/hit-level-data-python-cft/main/Application_Workflow.jpeg
 
-The workflow diagram explains at a high level the steps involved in this pipeline. The description about each of the .py file and their functions is described respectively in those files. At a high level, the three .py files correspond to AWS lambda functions, below are their names and descriptions:
-1.
-2.
-3.
+The workflow diagram explains at a high level the steps involved in this pipeline. The description about each of the .py file and their functions is described respectively in those files. At a high level, the three .py files correspond to 3 AWS lambda functions, below are their names and descriptions:
+1. dq_check_split_file.py - Does DQ checks, unpacking of columns and splitting of input file into smaller files.
+2. publish_sqs.py - Publishes message to SQS to act as a decoupled input to third lambda function.
+3. process_parsed_output.py - Processes the file as a dataframe to unpack/ calculate other columns which help in answering the analytical question on hand.
 
 
 Deployment requirements:
@@ -18,8 +18,8 @@ Deployment Steps:
 
 Execution Steps:
 1. Upload a file in landing bucket (data.tsv) -- This will trigger the process of doing DQ, transforming and splitting files and eventually running logic to answer the analytical question. The output will be stored in the Processed s3 bucket.
-    i. Sample input file provided is found at -
-    ii. Sample output file to answer the above analytical question can be found at -
+    i. Sample input file provided is found at - https://github.com/vaibhavwalvekar/hit-level-data-python-cft/blob/main/data.tsv
+    ii. Sample output file to answer the above analytical question can be found at - https://github.com/vaibhavwalvekar/hit-level-data-python-cft/blob/main/2022-07-08_SearchKeywordPerformance.tsv
 
 Business Case Analyzed:
 
