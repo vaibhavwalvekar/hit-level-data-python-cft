@@ -19,8 +19,8 @@ The workflow diagram explains at a high level the steps involved in this pipelin
 
 <h4>Execution Steps:</h4>
 - Upload a file in landing bucket (data.tsv) -- This will trigger the process of doing DQ, transforming and splitting files and eventually running logic to answer the analytical question. The output will be stored in the Processed s3 bucket. <br/>For processing of sample data, end to end is less than a min.<br/>
-      i. Sample input file provided is found at - https://github.com/vaibhavwalvekar/hit-level-data-python-cft/blob/main/data.tsv<br/>
-      ii. Corresponding output file for above input can be found at - https://github.com/vaibhavwalvekar/hit-level-data-python-cft/blob/main/2022-07-08_SearchKeywordPerformance.tsv<br/>
+      - Sample input file provided is found at - https://github.com/vaibhavwalvekar/hit-level-data-python-cft/blob/main/data.tsv<br/>
+      - Corresponding output file for above input can be found at - https://github.com/vaibhavwalvekar/hit-level-data-python-cft/blob/main/2022-07-08_SearchKeywordPerformance.tsv<br/>
 
 <h4>Business Case Analysis:</h4>
 https://github.com/vaibhavwalvekar/hit-level-data-python-cft/blob/main/business_case_analysis.md
