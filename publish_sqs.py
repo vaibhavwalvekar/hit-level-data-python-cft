@@ -36,6 +36,7 @@ def lambda_handler(event, context):
         }
     except Exception as e:
         logger.error ('Failed! Publish SQS Lambda handler has issue ' + str(e))
+        raise e
 
 
 def sqs_publish_msg(bucket_name, file_name):
@@ -69,6 +70,7 @@ def sqs_publish_msg(bucket_name, file_name):
         return response['MessageId']
     except Exception as e:
         logger.error("Send sqs message failed " + str(e))
+        raise e
 
 
 def send_sns_update(msgid):
@@ -87,3 +89,4 @@ def send_sns_update(msgid):
         logger.info ('SNS notification sent regarding task waiting in sqs')
     except Exception as e:
         logger.error ('Failed! Send sns update has issue ' + str(e))
+        raise e

@@ -50,6 +50,7 @@ def lambda_handler(event, context):
         }
     except Exception as e:
         logger.error ('Failed! Process parsed output Lambda handler has issue ' + str(e))
+        raise e
 
 
 def revenue_calc(df):
@@ -88,6 +89,7 @@ def revenue_calc(df):
         return final_df
     except Exception as e:
         logger.error ('Failed!  Revenue calculation has a issue ' + str(e))
+        raise e
 
 
 def url_parse(row):
@@ -109,6 +111,7 @@ def read_files_s3(bucket_name, prefix):
         return df
     except Exception as e:
         logger.error ('Failed! Reading from s3 has issue ' + str(e))
+        raise e
 
 def write_to_s3(df, prefix):
     """
@@ -124,6 +127,7 @@ def write_to_s3(df, prefix):
         wr.s3.to_csv(df = df, path = 's3://' + final_bucket_name +'/' + prefix +'/' + file_name, sep='\t')
     except Exception as e:
         logger.error ('Failed! Writing to s3 has issue ' + str(e))
+        raise e
 
 
 def delete_sqs_msg(receipt_handle):
@@ -141,3 +145,4 @@ def delete_sqs_msg(receipt_handle):
         logger.info ('Message has been deleted.')
     except Exception as e:
         logger.error ('Failed! Delete sqs msg has issue ' + str(e))
+        raise e

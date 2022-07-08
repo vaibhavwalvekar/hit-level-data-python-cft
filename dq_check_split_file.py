@@ -62,6 +62,7 @@ def lambda_handler(event, context):
         }
     except Exception as e:
         logger.error ('Failed! DQ Lambda handler has issue ' + str(e))
+        raise e
 
 
 def check_file_format(response):
@@ -80,6 +81,7 @@ def check_file_format(response):
             return False
     except Exception as e:
         logger.error ('Failed! Issue with checking file format ' + str(e))
+        raise e
 
 def check_file_columns(response):
     """
@@ -102,6 +104,7 @@ def check_file_columns(response):
                     return False
     except Exception as e:
         logger.error ('Failed! Issue with checking file columns ' + str(e))
+        raise e
 
 def send_dq_report(msg):
     """
@@ -117,6 +120,7 @@ def send_dq_report(msg):
         logger.info ('SNS notification has been sent')
     except Exception as e:
         logger.error ('Failed! Issue with sending DQ report ' + str(e))
+        raise e
 
 def transform_split_files(bucket_name, file_name, msg):
     """
@@ -152,3 +156,4 @@ def transform_split_files(bucket_name, file_name, msg):
         return msg
     except Exception as e:
         logger.error ('Failed! There has been an issue with splitting of file. The error is ' + str(e))
+        raise e
