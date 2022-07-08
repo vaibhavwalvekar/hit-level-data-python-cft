@@ -18,7 +18,7 @@ The workflow diagram explains at a high level the steps involved in this pipelin
 - Run deploy_stack.sh -- Creates all the required resources with appropriate permission, takes about 3 mins to create the infrastructure.
 
 <h4>Execution Steps:</h4>
-- Upload a file in landing bucket (data.tsv) -- This will trigger the process of doing DQ, transforming and splitting files and eventually running logic to answer the analytical question. The output will be stored in the Processed s3 bucket. <br/>For processing of sample data, end to end is less than a min.<br/>
+- Upload a file in landing bucket (data.tsv) -- This will trigger the process of doing DQ, transforming and splitting files and eventually running logic to answer the analytical question. The output will be stored in the Processed s3 bucket. <br/>For processing of sample data, end to end will take less than a minute.<br/>
       -  Sample input file provided is found at - https://github.com/vaibhavwalvekar/hit-level-data-python-cft/blob/main/data.tsv<br/>
       -  Corresponding output file for above input can be found at - https://github.com/vaibhavwalvekar/hit-level-data-python-cft/blob/main/2022-07-08_SearchKeywordPerformance.tsv<br/>
 
