@@ -10,12 +10,12 @@ How much revenue is the client getting from external Search Engines, such as Goo
   4. Product level details are captured for the visitor only when the action type is Purchase.<br/>
   5. It also has location and user agent (device) information of the visitor.<br/>
 <br/>
-The main challenge with respect to the problem statement and understanding the dataset seems to be that of matching the start of a journey to the end of a journey for each visitor, mostly we are interested in the visitor who provided our client some revenue. For that purpose, the columns of interest can be narrowed down to as below:
-    - date_time	- Needed for defining the timeline, partitioning the data<br/>
-    - ip	- Needed for partitioning the data<br/>
-    - event_list	- Identifying which user are purchasing, hence generating revenue.<br/>
-    - product_list	- It provides the attributes of the product, mainly total_revenue<br/>
-    - referrer - It is a URL, which has important information like search keyword and search engine domain.<br/>
+The main challenge with respect to the problem statement and understanding the dataset seems to be that of matching the start of a journey to the end of a journey for each visitor, mostly we are interested in the visitor who provided our client some revenue. For that purpose, the columns of interest can be narrowed down to as below:<br/>
+    - date_time	: Needed for defining the timeline, partitioning the data<br/>
+    - ip	: Needed for partitioning the data<br/>
+    - event_list	: Identifying which user are purchasing, hence generating revenue.<br/>
+    - product_list	: It provides the attributes of the product, mainly total_revenue<br/>
+    - referrer : It is a URL, which has important information like search keyword and search engine domain.<br/>
 
 <h4>Assumption/ Call outs:</h4>
   1. Ip identifies a single user<br/>
@@ -23,7 +23,7 @@ The main challenge with respect to the problem statement and understanding the d
   3. It there is a new search keyword or use of different search engine domain before end of purchase of the first item, then latest search keyword and search engine will be allocated that revenue, as there is no way to tell if the first search or second search resulted in buy of the first item.<br/>
   4. 'p=search' or 'q=search' are the only ways Google, MSN and Bing add search query to their URL, if there are other ways we might have to include that and also we will have to include other patterns for other search engines.<br/>
 <br/>
-We can answer the clients question with above assumptions in mind by
+We can answer the clients question with above assumptions in mind by<br/>
   1. Firstly unpacking the unstructured columns like the product and referrer to relevant columns, like total_revenue, search_keyword and search engine domain.<br/>
   2. Sorting data based on ip and date_time<br/>
   3. Only the rows which have external search engines, will have search word, rest rows will have null.<br/>
