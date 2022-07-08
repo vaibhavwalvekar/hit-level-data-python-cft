@@ -170,7 +170,7 @@ def send_sns_update():
           TargetArn = snstopicarn,
           Message = msg
        )
-        logger.info ('Final file has been uploaded to s3 and message has been deleted fromt eh sqs queue.')
+        logger.info ('Final file has been uploaded to s3 and message has been deleted from the sqs queue.')
     except Exception as e:
         logger.error ('Failed! Issue with sending sns notification of completion of final upload. ' + str(e))
         raise e
