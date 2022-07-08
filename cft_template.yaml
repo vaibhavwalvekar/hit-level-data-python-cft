@@ -1,0 +1,263 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cloud Formation template to define all AWS resources required in the project deployment
+Parameters:
+  Intermediates3Bucket:
+    Default: intermediate-hit-level-data
+    Description: Intermediate bucket landing DQ completed and split files
+    Type: String
+  LambdaMemorySize:
+    Default: '500'
+    Description: Memory allocated to the Lambda Function
+    MaxValue: 10240
+    MinValue: 128
+    Type: Number
+  LambdaTimeout:
+    Default: '360'
+    Description: Lambda function timeout
+    Type: Number
+  Landings3Bucket:
+    Default: landing-hit-level-data
+    Description: Landing bucket for the incoming file
+    Type: String
+  Processeds3Bucket:
+    Default: processed-hit-level-data
+    Description: Processed bucket which will have the final output
+    Type: String
+Resources:
+  DQLandingHitLevelData:
+    Properties:
+      Code:
+        S3Bucket: hit-level-data-lambda-codebase
+        S3Key: dq_check_split_file.zip
+      Environment:
+        Variables:
+          SNSTopicArn: !Ref 'DQSnstopic'
+          cols_for_analysis: '["date_time", "ip", "event_list", "product_list", "referrer"]'
+          expected_columns: '["hit_time_gmt", "date_time", "user_agent", "ip", "event_list", "geo_city", "geo_region", "geo_country" , "pagename", "page_url", "product_list", "referrer"]'
+          file_type: text/tab-separated-values
+          product_list_split_cols: '["category", "product_name", "number_of_items", "total_revenue", "custom_event"]'
+          target_bucket: !Ref 'Intermediates3Bucket'
+      FunctionName: dq_check_split_file
+      Handler: dq_check_split_file.lambda_handler
+      Layers:
+        - arn:aws:lambda:us-west-2:336392948345:layer:AWSDataWrangler-Python39:8
+      MemorySize: !Ref 'LambdaMemorySize'
+      Role: !GetAtt 'LambdaExecutionRole.Arn'
+      Runtime: python3.9
+      Timeout: !Ref 'LambdaTimeout'
+    Type: AWS::Lambda::Function
+  DQSnstopic:
+    Properties:
+      Subscription:
+        - Endpoint: vwalvekar90@gmail.com
+          Protocol: email
+      TopicName: Success_topic
+    Type: AWS::SNS::Topic
+  EventSourceMapping:
+    Properties:
+      BatchSize: 1
+      EventSourceArn: !GetAtt 'SQSforPublish.Arn'
+      FunctionName: !GetAtt 'ProcessParsedLambdaFunction.Arn'
+    Type: AWS::Lambda::EventSourceMapping
+  LambdaExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - logs:*
+                Effect: Allow
+                Resource: arn:aws:logs:*:*:*
+            Version: '2012-10-17'
+          PolicyName: CloudwatchAccess
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - s3:*
+                  - s3-object-lambda:*
+                Effect: Allow
+                Resource:
+                  - !Join
+                    - ''
+                    - - 'arn:aws:s3:::'
+                      - !Ref 'Landings3Bucket'
+                      - /*
+            Version: '2012-10-17'
+          PolicyName: s3AccessLanding
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - s3:*
+                  - s3-object-lambda:*
+                  - s3:ListBucket
+                Effect: Allow
+                Resource:
+                  - !Join
+                    - ''
+                    - - 'arn:aws:s3:::'
+                      - !Ref 'Intermediates3Bucket'
+                      - /*
+            Version: '2012-10-17'
+          PolicyName: s3AccessIntermediate
+        - PolicyDocument:
+            Statement:
+              - Action: s3:ListBucket
+                Effect: Allow
+                Resource:
+                  - !Join
+                    - ''
+                    - - 'arn:aws:s3:::'
+                      - !Ref 'Intermediates3Bucket'
+            Version: '2012-10-17'
+          PolicyName: s3ListAccessIntermediate
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - s3:*
+                  - s3-object-lambda:*
+                Effect: Allow
+                Resource:
+                  - !Join
+                    - ''
+                    - - 'arn:aws:s3:::'
+                      - !Ref 'Processeds3Bucket'
+                      - /*
+            Version: '2012-10-17'
+          PolicyName: s3AccessProcessed
+        - PolicyDocument:
+            Statement:
+              - Action: sns:Publish
+                Effect: Allow
+                Resource: !Ref 'DQSnstopic'
+            Version: '2012-10-17'
+          PolicyName: snsAccess
+        - PolicyDocument:
+            Statement:
+              - Action: sqs:SendMessage
+                Effect: Allow
+                Resource: !GetAtt 'SQSforPublish.Arn'
+            Version: '2012-10-17'
+          PolicyName: sqsAccess
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: !GetAtt 'SQSforPublish.Arn'
+            Version: '2012-10-17'
+          PolicyName: sqsWriteDeleteAccess
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - lambda:GetLayerVersion
+                  - lambda:DeleteLayerVersion
+                  - lambda:ListLayerVersions
+                  - lambda:ListLayers
+                  - lambda:AddLayerVersionPermission
+                  - lambda:RemoveLayerVersionPermission
+                Effect: Allow
+                Resource: '*'
+            Version: '2012-10-17'
+          PolicyName: lambdalayerAccess
+    Type: AWS::IAM::Role
+  ProcessParsedLambdaFunction:
+    Properties:
+      Code:
+        S3Bucket: hit-level-data-lambda-codebase
+        S3Key: process_parsed_output.zip
+      Environment:
+        Variables:
+          SQSURL: !Ref 'SQSforPublish'
+          final_bucket: !Ref 'Processeds3Bucket'
+          final_output_file_name: _SearchKeywordPerformance.tsv
+      FunctionName: process_parsed_output
+      Handler: process_parsed_output.lambda_handler
+      Layers:
+        - arn:aws:lambda:us-west-2:336392948345:layer:AWSDataWrangler-Python39:8
+        - arn:aws:lambda:us-west-2:506446423536:layer:pandas:1
+      MemorySize: !Ref 'LambdaMemorySize'
+      Role: !GetAtt 'LambdaExecutionRole.Arn'
+      Runtime: python3.9
+      Timeout: !Ref 'LambdaTimeout'
+    Type: AWS::Lambda::Function
+  S3BucketLanding:
+    DependsOn: DQLandingHitLevelData
+    Properties:
+      AccessControl: Private
+      BucketName: !Ref 'Landings3Bucket'
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:Put
+            Function: !GetAtt 'DQLandingHitLevelData.Arn'
+    Type: AWS::S3::Bucket
+  S3Bucketintermediate:
+    DependsOn: SQSPublishLambdaFunction
+    Properties:
+      AccessControl: Private
+      BucketName: !Ref 'Intermediates3Bucket'
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:Put
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: .json
+            Function: !GetAtt 'SQSPublishLambdaFunction.Arn'
+    Type: AWS::S3::Bucket
+  S3Bucketprocessed:
+    Properties:
+      AccessControl: Private
+      BucketName: !Ref 'Processeds3Bucket'
+    Type: AWS::S3::Bucket
+  SQSPublishLambdaFunction:
+    Properties:
+      Code:
+        S3Bucket: hit-level-data-lambda-codebase
+        S3Key: publish_sqs.zip
+      Environment:
+        Variables:
+          SNSTopicArn: !Ref 'DQSnstopic'
+          SQSURL: !Ref 'SQSforPublish'
+      FunctionName: publish_sqs
+      Handler: publish_sqs.lambda_handler
+      Layers:
+        - arn:aws:lambda:us-west-2:336392948345:layer:AWSDataWrangler-Python39:8
+      MemorySize: !Ref 'LambdaMemorySize'
+      Role: !GetAtt 'LambdaExecutionRole.Arn'
+      Runtime: python3.9
+      Timeout: !Ref 'LambdaTimeout'
+    Type: AWS::Lambda::Function
+  SQSforPublish:
+    Properties:
+      VisibilityTimeout: 1000
+    Type: AWS::SQS::Queue
+  s3InvokePermission:
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt 'DQLandingHitLevelData.Arn'
+      Principal: s3.amazonaws.com
+      SourceArn: arn:aws:s3:::landing-hit-level-data
+    Type: AWS::Lambda::Permission
+  s3InvokePermissionSQS:
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt 'SQSPublishLambdaFunction.Arn'
+      Principal: s3.amazonaws.com
+      SourceArn: arn:aws:s3:::intermediate-hit-level-data
+    Type: AWS::Lambda::Permission
