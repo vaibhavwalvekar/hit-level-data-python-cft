@@ -12,15 +12,15 @@ The workflow diagram explains at a high level the steps involved in this pipelin
 3. process_parsed_output.py - Processes the file as a dataframe to unpack/ calculate other columns which help in answering the analytical question on hand.<br/>
 
 <h4>Deployment requirements:</h4>
-1. Require aws programmatic access, with sufficient privileges to create resource using cloudformation templates via amazon cli OR use the cft_template.yaml to create cloudformation templates using AWS console.
+- Require aws programmatic access, with sufficient privileges to create resource using cloudformation templates via amazon cli OR use the cft_template.yaml to create cloudformation templates using AWS console.
 
 <h4>Deployment Steps:</h4>
-1. Run deploy_stack.sh -- Creates all the required resources with appropriate permission, takes about 3 mins to create the infrastructure.
+- Run deploy_stack.sh -- Creates all the required resources with appropriate permission, takes about 3 mins to create the infrastructure.
 
 <h4>Execution Steps:</h4>
-1. Upload a file in landing bucket (data.tsv) -- This will trigger the process of doing DQ, transforming and splitting files and eventually running logic to answer the analytical question. The output will be stored in the Processed s3 bucket. <br/>For processing of sample data, end to end is less than a min.<br/>
-    i. Sample input file provided is found at - https://github.com/vaibhavwalvekar/hit-level-data-python-cft/blob/main/data.tsv<br/>
-    ii. Corresponding output file for above input can be found at - https://github.com/vaibhavwalvekar/hit-level-data-python-cft/blob/main/2022-07-08_SearchKeywordPerformance.tsv<br/>
+- Upload a file in landing bucket (data.tsv) -- This will trigger the process of doing DQ, transforming and splitting files and eventually running logic to answer the analytical question. The output will be stored in the Processed s3 bucket. <br/>For processing of sample data, end to end is less than a min.<br/>
+      i. Sample input file provided is found at - https://github.com/vaibhavwalvekar/hit-level-data-python-cft/blob/main/data.tsv<br/>
+      ii. Corresponding output file for above input can be found at - https://github.com/vaibhavwalvekar/hit-level-data-python-cft/blob/main/2022-07-08_SearchKeywordPerformance.tsv<br/>
 
 <h4>Business Case Analysis:</h4>
 https://github.com/vaibhavwalvekar/hit-level-data-python-cft/blob/main/business_case_analysis.md
