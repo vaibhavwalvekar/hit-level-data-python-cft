@@ -13,13 +13,24 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 #boto clients for aws services
-sqs_client = boto3.client('sqs')
-s3_resource = boto3.resource('s3')
+try:
+    sqs_client = boto3.client('sqs')
+    s3_resource = boto3.resource('s3')
+    sns_client = boto3.client('sns')
+except Exception as e:
+    logger.error ('Failed! Issue in making boto client connections with AWS resources ' + str(e))
+    raise e
 
 #environment variables in lambda passed from CFT
-queue_url = os.environ['SQSURL']
-final_bucket_name = os.environ['final_bucket']
-final_output_file_name = os.environ['final_output_file_name']
+try:
+    queue_url = os.environ['SQSURL']
+    final_bucket_name = os.environ['final_bucket']
+    final_output_file_name = os.environ['final_output_file_name']
+    snstopicarn = os.environ['SNSTopicArn']
+except Exception as e:
+    logger.error ('Failed! Issue with reading environment variables in Revenue Calcualtion Lambda function ' + str(e))
+    raise e
+
 
 def lambda_handler(event, context):
     """
@@ -44,6 +55,7 @@ def lambda_handler(event, context):
         df = revenue_calc(df)
         write_to_s3(df, prefix)
         delete_sqs_msg(receipt_handle)
+        send_sns_update()
         return {
             'statusCode': 200,
             'body': json.dumps('Successfully uploaded final output to s3.')
@@ -145,4 +157,20 @@ def delete_sqs_msg(receipt_handle):
         logger.info ('Message has been deleted.')
     except Exception as e:
         logger.error ('Failed! Delete sqs msg has issue ' + str(e))
+        raise e
+
+
+def send_sns_update():
+    """
+    Sends an sns notification updating about completion of process.
+    """
+    try:
+        msg = 'Final file has been uploaded to s3 and message has been deleted fromt eh sqs queue.'
+        response = sns_client.publish (
+          TargetArn = snstopicarn,
+          Message = msg
+       )
+        logger.info ('Final file has been uploaded to s3 and message has been deleted fromt eh sqs queue.')
+    except Exception as e:
+        logger.error ('Failed! Issue with sending sns notification of completion of final upload. ' + str(e))
         raise e

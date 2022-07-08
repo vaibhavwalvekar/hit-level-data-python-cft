@@ -77,7 +77,7 @@ ProcessParsedLambdaFunction = t.add_resource(
         Runtime="python3.9",
         MemorySize=Ref(MemorySize),
         Timeout=Ref(Timeout),
-        Environment = Environment(Variables={'SQSURL': Ref("SQSforPublish"), 'final_bucket' : Ref(Processeds3Bucket),
+        Environment = Environment(Variables={'SQSURL': Ref("SQSforPublish"), 'final_bucket' : Ref(Processeds3Bucket), 'SNSTopicArn': Ref("DQSnstopic"),
         'final_output_file_name':'_SearchKeywordPerformance.tsv'}),
         Layers = ['arn:aws:lambda:us-west-2:336392948345:layer:AWSDataWrangler-Python39:8', 'arn:aws:lambda:us-west-2:506446423536:layer:pandas:1']
     )
@@ -227,25 +227,13 @@ LambdaExecutionRole = t.add_resource(
                 },
             ),
             Policy(
-                PolicyName="sqsAccess",
-                PolicyDocument={
-                    "Version": "2012-10-17",
-                    "Statement": [
-                        {
-                            "Action": "sqs:SendMessage",
-                            "Resource": GetAtt("SQSforPublish", "Arn"),
-                            "Effect": "Allow",
-                        }
-                    ],
-                },
-            ),
-            Policy(
                 PolicyName="sqsWriteDeleteAccess",
                 PolicyDocument={
                     "Version": "2012-10-17",
                     "Statement": [
                         {
                             "Action":  [
+                                        "sqs:SendMessage",
                                         "sqs:ReceiveMessage",
                                         "sqs:DeleteMessage",
                                         "sqs:GetQueueAttributes",

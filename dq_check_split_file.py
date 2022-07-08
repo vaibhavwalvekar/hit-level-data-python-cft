@@ -11,16 +11,23 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 #boto clients for aws services
-s3_client = boto3.client('s3')
-sns_client = boto3.client('sns')
-
+try:
+    s3_client = boto3.client('s3')
+    sns_client = boto3.client('sns')
+except Exception as e:
+    logger.error ('Failed! Issue in making boto client connections with AWS resources ' + str(e))
+    raise e
 #environment variables in lambda passed from CFT
-target_bucket = os.environ['target_bucket']
-file_type = os.environ['file_type']
-snstopicarn = os.environ['SNSTopicArn']
-expected_columns = json.loads(os.environ['expected_columns'])
-cols_for_analysis = json.loads(os.environ['cols_for_analysis'])
-product_list_split_cols = json.loads(os.environ['product_list_split_cols'])
+try:
+    target_bucket = os.environ['target_bucket']
+    file_type = os.environ['file_type']
+    snstopicarn = os.environ['SNSTopicArn']
+    expected_columns = json.loads(os.environ['expected_columns'])
+    cols_for_analysis = json.loads(os.environ['cols_for_analysis'])
+    product_list_split_cols = json.loads(os.environ['product_list_split_cols'])
+except Exception as e:
+    logger.error ('Failed! Issue with reading environment variables in DQ Lambda function ' + str(e))
+    raise e
 
 def lambda_handler(event, context):
     """

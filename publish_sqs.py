@@ -7,11 +7,19 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 #boto clients for aws services
-sqs_client = boto3.client('sqs')
-
+try:
+    sqs_client = boto3.client('sqs')
+    sns_client = boto3.client('sns')
+except Exception as e:
+    logger.error ('Failed! Issue in making boto client connections with AWS resources ' + str(e))
+    raise e
 #environment variables in lambda passed from CFT
-queue_url = os.environ['SQSURL']
-snstopicarn = os.environ['SNSTopicArn']
+try:
+    queue_url = os.environ['SQSURL']
+    snstopicarn = os.environ['SNSTopicArn']
+except Exception as e:
+    logger.error ('Failed! Issue with reading environment variables in Publish SQS Lambda function ' + str(e))
+    raise e
 
 def lambda_handler(event, context):
     """
@@ -80,7 +88,6 @@ def send_sns_update(msgid):
         msg: string
     """
     try:
-        sns_client = boto3.client('sns')
         msg = 'A task is waiting in queue to be run, the sqs msg id is ' + str(msgid)
         response = sns_client.publish (
           TargetArn = snstopicarn,
